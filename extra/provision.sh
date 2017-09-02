@@ -213,6 +213,7 @@ source "$CODE_PATH/extra/lib.sh"
 package_repo_update
 
 package git
+package ubuntu-desktop
 package curl
 package rsync
 
