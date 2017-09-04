@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Facebook CTF: script to start tests and code coverage
+# Ethan Aldrich CTF: script to start tests and code coverage
 #
 # Usage: ./run_tests.sh [path_to_code]
 #

@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
-# Script to simulate load testing for the fbctf platform.
-# By default, it uses the IP for the dev fbctf vagrant.
+# Script to simulate load testing for the EACTF platform.
+# By default, it uses the IP for the dev EACTF vagrant.
 #
 # Usage: ./load-tester.py [platform_IP-hostname]
 #

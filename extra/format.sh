@@ -14,7 +14,7 @@ SRC_LOCATION="/vagrant/src"
 IGNORE_FILES=("language/language.php")
 
 function usage() {
-  printf "\nfbctf formatting script\n"
+  printf "\neactf formatting script\n"
   printf "\nUsage: %s [-h|--help] [ARGUMENT] \n" "${0}"
   printf "\nParameters:\n"
   printf "  -h, --help \t\tShows this help message and exit.\n"

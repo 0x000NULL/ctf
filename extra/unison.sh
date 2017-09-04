@@ -39,7 +39,7 @@ vagrant ssh-config > "$SSH_CONFIG"
 echo "[+] Creating unison profile"
 PROFILE="
 root = $CODE_PATH
-root = ssh://default//var/www/fbctf/
+root = ssh://default//var/www/eactf/
 ignore = Name {.vagrant,.DS_Store,.sources,node_modules,settings.ini}
 
 prefer = $CODE_PATH
@@ -59,10 +59,10 @@ fi
 
 cd $UNISONDIR
 [[ -d "$UNISONDIR/.unison" ]] || mkdir "$UNISONDIR/.unison"
-echo "$PROFILE" > "$UNISONDIR/.unison/fbctf.prf"
+echo "$PROFILE" > "$UNISONDIR/.unison/eactf.prf"
 
 echo "[+] Sync'ing project in the background..."
-$UNISON "fbctf" &
+$UNISON "eactf" &
 
 echo "[+] Done"
 exit 0
