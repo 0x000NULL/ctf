@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# EACTF provisioning script
+# FBCTF provisioning script
 #
 # Usage: provision.sh [-h|--help] [PARAMETER [ARGUMENT]] [PARAMETER [ARGUMENT]] ...
 #
@@ -12,7 +12,7 @@
 # Arguments for MODE:
 #   dev    Provision will run in development mode. Certificate will be self-signed.
 #   prod   Provision will run in production mode.
-#   update Provision will update EACTF running in the machine.
+#   update Provision will update FBCTF running in the machine.
 #
 # Arguments for TYPE:
 #   self   Provision will use a self-signed SSL certificate that will be generated.
@@ -20,14 +20,14 @@
 #   certbot Provision will generate a SSL certificate using letsencrypt/certbot. More info here: https://certbot.eff.org/
 #
 # Optional Parameters:
-#   -U,         --update             Pull from master GitHub branch and sync files to eactf folder.
+#   -U,         --update             Pull from master GitHub branch and sync files to fbctf folder.
 #   -R,         --no-repo-mode       Disables HHVM Repo Authoritative mode in production mode.
 #   -k PATH,    --keyfile PATH       Path to supplied SSL key file.
 #   -C PATH,    --certfile PATH      Path to supplied SSL certificate pem file.
 #   -D DOMAIN,  --domain DOMAIN      Domain for the SSL certificate to be generated using letsencrypt.
 #   -e EMAIL,   --email EMAIL        Domain for the SSL certificate to be generated using letsencrypt.
-#   -s PATH,    --code PATH          Path to eactf code.
-#   -d PATH,    --destination PATH   Destination path to place the eactf folder.
+#   -s PATH,    --code PATH          Path to fbctf code.
+#   -d PATH,    --destination PATH   Destination path to place the fbctf folder.
 #               --multiple-servers     Utilize multiple servers for installation. Server must be specified with --server-type
 #               --server-type  SERVER  Server to provision. 'hhvm', 'nginx', 'mysql', or 'cache' can be used.
 #               --hhvm-server  SERVER  HHVM Server IP when utilizing multiple servers. Call from 'nginx' server container.
@@ -35,17 +35,17 @@
 #               --cache-server SERVER  Memcached Server IP when utilizing multiple servers. Call from 'hhvm' server container.
 #
 # Examples:
-#   Provision eactf in development mode:
-#     provision.sh -m dev -s /home/foobar/eactf -d /var/eactf
-#   Provision eactf in production mode using my own certificate:
-#     provision.sh -m prod -c own -k /etc/certs/my.key -C /etc/certs/cert.crt -s /home/foobar/eactf -d /var/eactf
-#   Update current eactf in development mode, having code in /home/foobar/eactf and running from /var/eactf:
-#     provision.sh -m dev -U -s /home/foobar/eactf -d /var/eactf
+#   Provision fbctf in development mode:
+#     provision.sh -m dev -s /home/foobar/fbctf -d /var/fbctf
+#   Provision fbctf in production mode using my own certificate:
+#     provision.sh -m prod -c own -k /etc/certs/my.key -C /etc/certs/cert.crt -s /home/foobar/fbctf -d /var/fbctf
+#   Update current fbctf in development mode, having code in /home/foobar/fbctf and running from /var/fbctf:
+#     provision.sh -m dev -U -s /home/foobar/fbctf -d /var/fbctf
 
 # We want the provision script to fail as soon as there are any errors
 set -e
 
-DB="eactf"
+DB="fbctf"
 U="ctf"
 P="ctf"
 P_ROOT="root"
@@ -59,7 +59,7 @@ CERTFILE="none"
 DOMAIN="none"
 EMAIL="none"
 CODE_PATH="/vagrant"
-CTF_PATH="/var/www/eactf"
+CTF_PATH="/var/www/fbctf"
 HHVM_CONFIG_PATH="/etc/hhvm/server.ini"
 DOCKER=false
 MULTIPLE_SERVERS=false
@@ -73,7 +73,7 @@ VALID_MODE=("dev" "prod")
 VALID_TYPE=("self" "own" "certbot")
 
 function usage() {
-  printf "\neactf provisioning script\n"
+  printf "\nfbctf provisioning script\n"
   printf "\nUsage: %s [-h|--help] [PARAMETER [ARGUMENT]] [PARAMETER [ARGUMENT]] ...\n" "${0}"
   printf "\nParameters:\n"
   printf "  -h, --help \t\tShows this help message and exit.\n"
@@ -82,32 +82,32 @@ function usage() {
   printf "\nArguments for MODE:\n"
   printf "  dev \tProvision will run in Development mode. Certificate will be self-signed.\n"
   printf "  prod \tProvision will run in Production mode.\n"
-  printf "  update \tProvision will update EACTF running in the machine.\n"
+  printf "  update \tProvision will update FBCTF running in the machine.\n"
   printf "\nArguments for TYPE:\n"
   printf "  self \tProvision will use a self-signed SSL certificate that will be generated.\n"
   printf "  own \tProvision will use the SSL certificate provided by the user.\n"
   printf "  certbot Provision will generate a SSL certificate using letsencrypt/certbot. More info here: https://certbot.eff.org/\n"
   printf "\nOptional Parameters:\n"
-  printf "  -U          --update \t\tPull from master GitHub branch and sync files to eactf folder.\n"
+  printf "  -U          --update \t\tPull from master GitHub branch and sync files to fbctf folder.\n"
   printf "  -R          --no-repo-mode \tDisables HHVM Repo Authoritative mode in production mode.\n"
   printf "  -k PATH     --keyfile PATH \tPath to supplied SSL key file.\n"
   printf "  -C PATH     --certfile PATH \tPath to supplied SSL certificate pem file.\n"
   printf "  -D DOMAIN   --domain DOMAIN \tDomain for the SSL certificate to be generated using letsencrypt.\n"
   printf "  -e EMAIL    --email EMAIL \tDomain for the SSL certificate to be generated using letsencrypt.\n"
-  printf "  -s PATH     --code PATH \t\tPath to eactf code. Default is /vagrant\n"
-  printf "  -d PATH     --destination PATH \tDestination path to place the eactf folder. Default is /var/www/eactf\n"
+  printf "  -s PATH     --code PATH \t\tPath to fbctf code. Default is /vagrant\n"
+  printf "  -d PATH     --destination PATH \tDestination path to place the fbctf folder. Default is /var/www/fbctf\n"
   printf "  --multiple-servers    --utilize multiple servers for installation. Server must be specified with -st\n"
   printf "  --server-type SERVER  --specify server to provision. 'hhvm', 'nginx', 'mysql', or 'cache' can be used.\n"
   printf "  --hhvm-server SERVER  --specify HHVM Server IP when utilizing multiple servers. Call from 'nginx' container.\n"
   printf "  --mysql-server SERVER --specify MySQL Server IP when utilizing multiple servers. Call from 'hhvm' container.\n"
   printf "  --cache-server SERVER --memcached Server IP when utilizing multiple servers. Call from 'hhvm' server container.\n"
   printf "\nExamples:\n"
-  printf "  Provision EACTF in development mode:\n"
-  printf "\t%s -m dev -s /home/foobar/eactf -d /var/eactf\n" "${0}"
-  printf "  Provision EACTF in production mode using my own certificate:\n"
-  printf "\t%s -m prod -c own -k /etc/certs/my.key -C /etc/certs/cert.crt -s /home/foobar/eactf -d /var/eactf\n" "${0}"
-  printf "  Update current EACTF in development mode, having code in /home/foobar/eactf and running from /var/eactf:\n"
-  printf "\t%s -m dev -U -s /home/foobar/eactf -d /var/eactf\n" "${0}"
+  printf "  Provision FBCTF in development mode:\n"
+  printf "\t%s -m dev -s /home/foobar/fbctf -d /var/fbctf\n" "${0}"
+  printf "  Provision FBCTF in production mode using my own certificate:\n"
+  printf "\t%s -m prod -c own -k /etc/certs/my.key -C /etc/certs/cert.crt -s /home/foobar/fbctf -d /var/fbctf\n" "${0}"
+  printf "  Update current FBCTF in development mode, having code in /home/foobar/fbctf and running from /var/fbctf:\n"
+  printf "\t%s -m dev -U -s /home/foobar/fbctf -d /var/fbctf\n" "${0}"
 }
 
 ARGS=$(getopt -n "$0" -o hm:c:URk:C:D:e:s:d: -l "help,mode:,cert:,update,repo-mode,keyfile:,certfile:,domain:,email:,code:,destination:,docker,multiple-servers,server-type:,hhvm-server:,mysql-server:,cache-server:" -- "$@")
@@ -213,7 +213,6 @@ source "$CODE_PATH/extra/lib.sh"
 package_repo_update
 
 package git
-package ubuntu-desktop
 package curl
 package rsync
 
@@ -221,7 +220,7 @@ package rsync
 AVAILABLE_RAM=`free -mt | grep Total | awk '{print $2}'`
 
 if [ $AVAILABLE_RAM -lt 1024 ]; then
-    log "EACTF is likely to fail to install without 1GB or more of RAM."
+    log "FBCTF is likely to fail to install without 1GB or more of RAM."
     log "Sleeping for 5 seconds."
     sleep 5
 fi
@@ -381,7 +380,7 @@ if [[ "$MULTIPLE_SERVERS" == true ]]; then
         elif [[ "$SERVER_TYPE" = "nginx" ]]; then
             sudo service nginx restart
             if [[ -d "/vagrant" ]]; then
-                ok_log 'EACTF deployment is complete! Cleaning up... EACTF will be Ready at https://10.10.10.5'
+                ok_log 'FBCTF deployment is complete! Cleaning up... FBCTF will be Ready at https://10.10.10.5'
             fi
         elif [[ "$SERVER_TYPE" = "mysql" ]]; then
             sudo service mysql restart
@@ -390,9 +389,9 @@ if [[ "$MULTIPLE_SERVERS" == true ]]; then
         fi
     fi
 elif [[ -d "/vagrant" ]]; then
-    ok_log 'EACTF deployment is complete! Cleaning up... EACTF will be Ready at https://10.10.10.5'
+    ok_log 'FBCTF deployment is complete! Cleaning up... FBCTF will be Ready at https://10.10.10.5'
 else
-    ok_log 'EACTF deployment is complete! Cleaning up...'
+    ok_log 'FBCTF deployment is complete! Cleaning up...'
 fi
 
 exit 0

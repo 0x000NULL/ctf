@@ -174,8 +174,8 @@ function install_nginx() {
     local __key="$__certs_path/dev.key"
     self_signed_cert "$__cert" "$__key"
   elif [[ "$__mode" = "prod" ]]; then
-    local __cert="$__certs_path/eactf.crt"
-    local __key="$__certs_path/eactf.key"
+    local __cert="$__certs_path/fbctf.crt"
+    local __key="$__certs_path/fbctf.key"
     case "$__certs" in
       self)
         self_signed_cert "$__cert" "$__key"
@@ -204,13 +204,13 @@ function install_nginx() {
   sudo openssl dhparam -out "$__dhparam" 2048
 
   if [[ "$__multiservers" == true ]]; then
-      cat "$__path/extra/nginx/nginx.conf" | sed "s|CTFPATH|$__path/src|g" | sed "s|CER_FILE|$__cert|g" | sed "s|KEY_FILE|$__key|g" | sed "s|DHPARAM_FILE|$__dhparam|g" | sed "s|HHVMSERVER|$__hhvmserver|g" | sudo tee /etc/nginx/sites-available/eactf.conf
+      cat "$__path/extra/nginx/nginx.conf" | sed "s|CTFPATH|$__path/src|g" | sed "s|CER_FILE|$__cert|g" | sed "s|KEY_FILE|$__key|g" | sed "s|DHPARAM_FILE|$__dhparam|g" | sed "s|HHVMSERVER|$__hhvmserver|g" | sudo tee /etc/nginx/sites-available/fbctf.conf
   else
-      cat "$__path/extra/nginx.conf" | sed "s|CTFPATH|$__path/src|g" | sed "s|CER_FILE|$__cert|g" | sed "s|KEY_FILE|$__key|g" | sed "s|DHPARAM_FILE|$__dhparam|g" | sudo tee /etc/nginx/sites-available/eactf.conf
+      cat "$__path/extra/nginx.conf" | sed "s|CTFPATH|$__path/src|g" | sed "s|CER_FILE|$__cert|g" | sed "s|KEY_FILE|$__key|g" | sed "s|DHPARAM_FILE|$__dhparam|g" | sudo tee /etc/nginx/sites-available/fbctf.conf
   fi
 
   sudo rm -f /etc/nginx/sites-enabled/default
-  sudo ln -sf /etc/nginx/sites-available/eactf.conf /etc/nginx/sites-enabled/eactf.conf
+  sudo ln -sf /etc/nginx/sites-available/fbctf.conf /etc/nginx/sites-enabled/fbctf.conf
 
   if [[ "$__multiservers" == false ]]; then
       # Restart nginx
@@ -380,7 +380,7 @@ function update_repo() {
   fi
 
   log "Pulling from remote repository"
-  git pull --rebase https://github.com/facebook/eactf.git
+  git pull --rebase https://github.com/facebook/fbctf.git
 
   log "Starting sync to $__ctf_path"
   if [[ "$__code_path" != "$__ctf_path" ]]; then
@@ -423,8 +423,8 @@ function quick_setup() {
   elif [[ "$__type" = "start_docker" ]]; then
     package_repo_update
     package docker-ce
-    sudo docker build --build-arg MODE=$__mode -t="eactf-image" .
-    sudo docker run --name eactf -p 80:80 -p 443:443 eactf-image
+    sudo docker build --build-arg MODE=$__mode -t="fbctf-image" .
+    sudo docker run --name fbctf -p 80:80 -p 443:443 fbctf-image
   elif [[ "$__type" = "start_docker_multi" ]]; then
     package_repo_update
     package python-pip
